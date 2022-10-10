@@ -64,5 +64,16 @@ ui["j-hui/fidget.nvim"] = {
 	event = "BufReadPost",
 	config = conf.fidget,
 }
+ui["numToStr/FTerm.nvim"] = {
+	opt = true,
+	config = conf.FTerm,
+}
+ui["aspeddro/gitui.nvim"] = {
+	opt = true,
+	config = conf.gitui,
+}
+ui["ttbug/tig.nvim"] = {
+	opt = true,
+}
 
 return ui

@@ -1019,4 +1019,18 @@ function config.fidget()
 	})
 end
 
+function config.FTerm()
+	require("FTerm").setup({
+		border = 'double',
+		dimensions  = {
+		height = 0.9,
+		width = 0.9,
+	},
+})
+end
+
+function config.gitui()
+	require("gitui").setup()
+end
+
 return config

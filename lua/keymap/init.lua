@@ -108,6 +108,7 @@ local plug_map = {
 	["x|ga"] = map_cmd("v:lua.enhance_align('xga')"):with_expr(),
 	-- Plugin split-term
 	["n|<F1>"] = map_cr("cclose"):with_noremap():with_silent(),
+	["n|<F3>"] = map_cr("TagbarToggle"):with_noremap():with_silent(),
 	["n|<F5>"] = map_cr("VTerm"):with_noremap():with_silent(),
 	["n|<C-w>t"] = map_cr("VTerm"):with_noremap():with_silent(),
 	-- Plugin MarkdownPreview

@@ -127,6 +127,11 @@ editor["luukvbaal/stabilize.nvim"] = {
 	event = "BufReadPost",
 }
 
+editor["preservim/tagbar"] = {
+	opt = true,
+	cmd = { "TagbarToggle" },
+}
+
 -- only for fcitx5 user who uses non-English language during coding
 -- editor["brglng/vim-im-select"] = {
 -- 	opt = true,
