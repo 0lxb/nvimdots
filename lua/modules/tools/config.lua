@@ -1,39 +1,21 @@
 local config = {}
 
 function config.telescope()
-	vim.cmd([[packadd sqlite.lua]])
-	vim.cmd([[packadd telescope-fzf-native.nvim]])
-	vim.cmd([[packadd telescope-project.nvim]])
-	vim.cmd([[packadd telescope-frecency.nvim]])
-	vim.cmd([[packadd telescope-zoxide]])
-
-	local telescope_actions = require("telescope.actions.set")
-	local fixfolds = {
-		hidden = true,
-		attach_mappings = function(_)
-			telescope_actions.select:enhance({
-				post = function()
-					vim.cmd(":normal! zx")
-				end,
-			})
-			return true
-		end,
-	}
+	local icons = { ui = require("modules.ui.icons").get("ui", true) }
+	local lga_actions = require("telescope-live-grep-args.actions")
 
 	require("telescope").setup({
 		defaults = {
 			initial_mode = "insert",
-			prompt_prefix = "  ",
-			selection_caret = " ",
+			prompt_prefix = " " .. icons.ui.Telescope .. " ",
+			selection_caret = icons.ui.ChevronRight,
 			entry_prefix = " ",
 			scroll_strategy = "limit",
 			results_title = false,
-			borderchars = { " ", " ", " ", " ", " ", " ", " ", " " },
 			layout_strategy = "horizontal",
 			path_display = { "absolute" },
 			file_ignore_patterns = { ".git/", ".cache", "%.class", "%.pdf", "%.mkv", "%.mp4", "%.zip" },
 			layout_config = {
-				prompt_position = "bottom",
 				horizontal = {
 					preview_width = 0.5,
 				},
@@ -56,32 +38,75 @@ function config.telescope()
 				show_unindexed = true,
 				ignore_patterns = { "*.git/*", "*/tmp/*" },
 			},
-		},
-		pickers = {
-			buffers = fixfolds,
-			find_files = fixfolds,
-			git_files = fixfolds,
-			grep_string = fixfolds,
-			live_grep = fixfolds,
-			oldfiles = fixfolds,
+			live_grep_args = {
+				auto_quoting = true, -- enable/disable auto-quoting
+				-- define mappings, e.g.
+				mappings = { -- extend mappings
+					i = {
+						["<C-k>"] = lga_actions.quote_prompt(),
+						["<C-i>"] = lga_actions.quote_prompt({ postfix = " --iglob " }),
+					},
+				},
+			},
+			undo = {
+				side_by_side = true,
+				layout_config = {
+					preview_height = 0.8,
+				},
+				mappings = { -- this whole table is the default
+					i = {
+						-- IMPORTANT: Note that telescope-undo must be available when telescope is configured if
+						-- you want to use the following actions. This means installing as a dependency of
+						-- telescope in it's `requirements` and loading this extension from there instead of
+						-- having the separate plugin definition as outlined above. See issue #6.
+						["<cr>"] = require("telescope-undo.actions").yank_additions,
+						["<S-cr>"] = require("telescope-undo.actions").yank_deletions,
+						["<C-cr>"] = require("telescope-undo.actions").restore,
+					},
+				},
+			},
 		},
 	})
 
+	require("telescope").load_extension("notify")
 	require("telescope").load_extension("fzf")
-	require("telescope").load_extension("project")
+	require("telescope").load_extension("projects")
 	require("telescope").load_extension("zoxide")
 	require("telescope").load_extension("frecency")
+	require("telescope").load_extension("live_grep_args")
+	require("telescope").load_extension("undo")
+end
+
+function config.project()
+	require("project_nvim").setup({
+		manual_mode = false,
+		detection_methods = { "lsp", "pattern" },
+		patterns = { ".git", "_darcs", ".hg", ".bzr", ".svn", "Makefile", "package.json" },
+		ignore_lsp = { "efm", "copilot" },
+		exclude_dirs = {},
+		show_hidden = false,
+		silent_chdir = true,
+		scope_chdir = "global",
+		datapath = vim.fn.stdpath("data"),
+	})
 end
 
 function config.trouble()
+	local icons = {
+		ui = require("modules.ui.icons").get("ui"),
+		diagnostics = require("modules.ui.icons").get("diagnostics"),
+	}
+
 	require("trouble").setup({
 		position = "bottom", -- position of the list can be: bottom, top, left, right
 		height = 10, -- height of the trouble list when position is top or bottom
 		width = 50, -- width of the list when position is left or right
 		icons = true, -- use devicons for filenames
 		mode = "document_diagnostics", -- "workspace_diagnostics", "document_diagnostics", "quickfix", "lsp_references", "loclist"
-		fold_open = "", -- icon used for open folds
-		fold_closed = "", -- icon used for closed folds
+		fold_open = icons.ui.ArrowOpen, -- icon used for open folds
+		fold_closed = icons.ui.ArrowClosed, -- icon used for closed folds
+		group = true, -- group results by file
+		padding = true, -- add an extra new line on top of the list
 		action_keys = {
 			-- key mappings for actions in the trouble list
 			-- map to {} to remove a mapping, for example:
@@ -109,15 +134,16 @@ function config.trouble()
 		auto_close = false, -- automatically close the list when you have no diagnostics
 		auto_preview = true, -- automatically preview the location of the diagnostic. <esc> to close preview and go back to last window
 		auto_fold = false, -- automatically fold a file trouble list at creation
+		auto_jump = { "lsp_definitions" }, -- for the given modes, automatically jump if there is only a single result
 		signs = {
 			-- icons / text used for a diagnostic
-			error = "",
-			warning = "",
-			hint = "",
-			information = "",
-			other = "﫠",
+			error = icons.diagnostics.Error_alt,
+			warning = icons.diagnostics.Warning_alt,
+			hint = icons.diagnostics.Hint_alt,
+			information = icons.diagnostics.Information_alt,
+			other = icons.diagnostics.Question_alt,
 		},
-		use_lsp_diagnostic_signs = false, -- enabling this will use the signs defined in your lsp client
+		use_diagnostic_signs = false, -- enabling this will use the signs defined in your lsp client
 	})
 end
 
@@ -129,23 +155,96 @@ function config.sniprun()
 		interpreter_options = {}, -- " intepreter-specific options, consult docs / :SnipInfo <name>
 		-- " you can combo different display modes as desired
 		display = {
-			"Classic", -- "display results in the command-line  area
-			"VirtualTextOk", -- "display ok results as virtual text (multiline is shortened)
-			"VirtualTextErr", -- "display error results as virtual text
-			-- "TempFloatingWindow",      -- "display results in a floating window
-			"LongTempFloatingWindow", -- "same as above, but only long results. To use with VirtualText__
-			-- "Terminal"                 -- "display results in a vertical split
+			"TempFloatingWindowOk", -- display ok results in the floating window
+			"NvimNotifyErr", -- display err results with the nvim-notify plugin
+			-- "Classic", -- display results in the command line"
+			-- "VirtualText", -- display results in virtual text"
+			-- "LongTempFloatingWindow", -- display results in the long floating window
+			-- "Terminal" -- display results in a vertical split
+			-- "TerminalWithCode" -- display results and code history in a vertical split
+		},
+		display_options = {
+			terminal_width = 45,
+			notification_timeout = 5000,
 		},
 		-- " miscellaneous compatibility/adjustement settings
 		inline_messages = 0, -- " inline_message (0/1) is a one-line way to display messages
 		-- " to workaround sniprun not being able to display anything
-
-		borders = "shadow", -- " display borders around floating windows
+		borders = "single", -- " display borders around floating windows
 		-- " possible values are 'none', 'single', 'double', or 'shadow'
 	})
 end
 
+function config.wilder()
+	local wilder = require("wilder")
+	local colors = require("modules.utils").get_palette()
+	local icons = { ui = require("modules.ui.icons").get("ui") }
+
+	wilder.setup({ modes = { ":", "/", "?" } })
+	wilder.set_option("use_python_remote_plugin", 0)
+	wilder.set_option("pipeline", {
+		wilder.branch(
+			wilder.cmdline_pipeline({ use_python = 0, fuzzy = 1, fuzzy_filter = wilder.lua_fzy_filter() }),
+			wilder.vim_search_pipeline(),
+			{
+				wilder.check(function(_, x)
+					return x == ""
+				end),
+				wilder.history(),
+				wilder.result({
+					draw = {
+						function(_, x)
+							return icons.ui.Calendar .. " " .. x
+						end,
+					},
+				}),
+			}
+		),
+	})
+
+	local match_hl = require("modules.utils").hl_to_rgb("String", false, colors.green)
+
+	local popupmenu_renderer = wilder.popupmenu_renderer(wilder.popupmenu_border_theme({
+		border = "rounded",
+		highlights = {
+			border = "Title", -- highlight to use for the border
+			accent = wilder.make_hl("WilderAccent", "Pmenu", { { a = 0 }, { a = 0 }, { foreground = match_hl } }),
+		},
+		empty_message = wilder.popupmenu_empty_message_with_spinner(),
+		highlighter = wilder.lua_fzy_highlighter(),
+		left = {
+			" ",
+			wilder.popupmenu_devicons(),
+			wilder.popupmenu_buffer_flags({
+				flags = " a + ",
+				icons = { ["+"] = icons.ui.Pencil, a = icons.ui.Indicator, h = icons.ui.File },
+			}),
+		},
+		right = {
+			" ",
+			wilder.popupmenu_scrollbar(),
+		},
+	}))
+	local wildmenu_renderer = wilder.wildmenu_renderer({
+		highlighter = wilder.lua_fzy_highlighter(),
+		apply_incsearch_fix = true,
+	})
+	wilder.set_option(
+		"renderer",
+		wilder.renderer_mux({
+			[":"] = popupmenu_renderer,
+			["/"] = wildmenu_renderer,
+			substitute = wildmenu_renderer,
+		})
+	)
+end
+
 function config.which_key()
+	local icons = {
+		ui = require("modules.ui.icons").get("ui"),
+		misc = require("modules.ui.icons").get("misc"),
+	}
+
 	require("which-key").setup({
 		plugins = {
 			presets = {
@@ -160,9 +259,9 @@ function config.which_key()
 		},
 
 		icons = {
-			breadcrumb = "»",
-			separator = "│",
-			group = "+",
+			breadcrumb = icons.ui.Separator,
+			separator = icons.misc.Vbar,
+			group = icons.misc.Add,
 		},
 
 		window = {
@@ -175,37 +274,165 @@ function config.which_key()
 	})
 end
 
-function config.wilder()
-	vim.cmd([[
-call wilder#setup({'modes': [':', '/', '?']})
-call wilder#set_option('use_python_remote_plugin', 0)
-call wilder#set_option('pipeline', [wilder#branch(
-	\ wilder#cmdline_pipeline({'use_python': 0,'fuzzy': 1, 'fuzzy_filter': wilder#lua_fzy_filter()}),
-	\ wilder#vim_search_pipeline(),
-	\ [wilder#check({_, x -> empty(x)}), wilder#history(), wilder#result({'draw': [{_, x -> ' ' . x}]})]
-	\ )])
-call wilder#set_option('renderer', wilder#renderer_mux({
-	\ ':': wilder#popupmenu_renderer({
-		\ 'highlighter': wilder#lua_fzy_highlighter(),
-		\ 'left': [wilder#popupmenu_devicons()],
-		\ 'right': [' ', wilder#popupmenu_scrollbar()]
-		\ }),
-	\ '/': wilder#wildmenu_renderer({
-		\ 'highlighter': wilder#lua_fzy_highlighter(),
-		\ 'apply_incsearch_fix': v:true,
-		\})
-	\ }))
-]])
+function config.legendary()
+	require("legendary").setup({
+		which_key = {
+			auto_register = true,
+			do_binding = false,
+		},
+		scratchpad = {
+			view = "float",
+			results_view = "float",
+			keep_contents = true,
+		},
+		sort = {
+			-- sort most recently used item to the top
+			most_recent_first = true,
+			-- sort user-defined items before built-in items
+			user_items_first = true,
+			frecency = {
+				-- the directory to store the database in
+				db_root = string.format("%s/legendary/", vim.fn.stdpath("data")),
+				-- the maximum number of timestamps for a single item
+				-- to store in the database
+				max_timestamps = 10,
+			},
+		},
+		-- Directory used for caches
+		cache_path = string.format("%s/legendary/", vim.fn.stdpath("cache")),
+		-- Log level, one of 'trace', 'debug', 'info', 'warn', 'error', 'fatal'
+		log_level = "info",
+	})
+
+	require("which-key").register({
+		["<leader>"] = {
+			b = {
+				name = "Bufferline commands",
+				d = "buffer: Sort by directory",
+				e = "buffer: Sort by extension",
+			},
+			d = {
+				name = "Dap commands",
+				b = "debug: Set breakpoint with condition",
+				c = "debug: Run to cursor",
+				l = "debug: Run last",
+				o = "debug: Open repl",
+			},
+			f = {
+				name = "Telescope commands",
+				p = "find: Project",
+				w = "find: Word",
+				r = "find: File by frecency",
+				e = "find: File by history",
+				c = "ui: Change color scheme",
+				z = "edit: Change current directory by zoxide",
+				f = "find: File under current work directory",
+				g = "find: File under current git directory",
+				n = "edit: New file",
+				b = "find: Buffer opened",
+			},
+			h = {
+				name = "Gitsigns commands",
+				b = "git: Blame line",
+				p = "git: Preview hunk",
+				s = "git: Stage hunk",
+				u = "git: Undo stage hunk",
+				r = "git: Reset hunk",
+				R = "git: Reset buffer",
+			},
+			l = {
+				name = "LSP commands",
+				i = "lsp: LSP Info",
+				r = "lsp: LSP Restart",
+			},
+			n = {
+				name = "NvimTree commands",
+				f = "filetree: NvimTree find file",
+				r = "filetree: NvimTree refresh",
+			},
+			p = {
+				name = "Package commands",
+				h = "package: Show",
+				s = "package: Sync",
+				i = "package: Install",
+				c = "package: Check",
+				d = "package: Debug",
+				l = "package: Log",
+				p = "package: Profile",
+				r = "package: Restore",
+				x = "package: Clean",
+				u = "package: Update",
+			},
+			s = {
+				c = "lsp: Show cursor disgnostics",
+				l = "lsp: Show line disgnostics",
+				s = "sesson: Save session",
+				r = "sesson: Restore session",
+				d = "sesson: Delete session",
+			},
+			t = {
+				name = "Trouble commands",
+				d = "lsp: Show document diagnostics",
+				w = "lsp: Show workspace diagnostics",
+				q = "lsp: Show quickfix list",
+				l = "lsp: Show loclist",
+				r = "lsp: Show lsp references",
+			},
+		},
+		["g"] = {
+			a = "lsp: Code action",
+			d = "lsp: Preview definition",
+			D = "lsp: Goto definition",
+			h = "lsp: Show reference",
+			o = "lsp: Toggle outline",
+			r = "lsp: Rename in file range",
+			R = "lsp: Rename in project range",
+			s = "lsp: Signature help",
+			t = "lsp: Toggle trouble list",
+			b = "buffer: Buffer pick",
+			p = {
+				name = "git commands",
+				s = "git: Push",
+				l = "git: Pull",
+			},
+		},
+		["<F6>"] = "debug: Run/Continue",
+		["<F7>"] = "debug: Terminate debug session",
+		["<F8>"] = "debug: Toggle breakpoint",
+		["<F9>"] = "debug: Step into",
+		["<F10>"] = "debug: Step out",
+		["<F11>"] = "debug: Step over",
+		["<leader>G"] = "git: Show fugitive",
+		["<leader>g"] = "git: Show lazygit",
+		["<leader>D"] = "git: Show diff",
+		["<leader><leader>D"] = "git: Close diff",
+		["]g"] = "git: Goto next hunk",
+		["[g"] = "git: Goto prev hunk",
+		["g["] = "lsp: Goto prev diagnostic",
+		["g]"] = "lsp: Goto next diagnostic",
+		["<leader>ci"] = "lsp: Incoming calls",
+		["<leader>co"] = "lsp: Outgoing calls",
+		["<leader>w"] = "jump: Goto word",
+		["<leader>j"] = "jump: Goto line",
+		["<leader>k"] = "jump: Goto line",
+		["<leader>c"] = "jump: Goto one char",
+		["<leader>cc"] = "jump: Goto two chars",
+		["<leader>o"] = "edit: Check spell",
+		["<leader>u"] = "edit: Show undo history",
+		["<leader>r"] = "tool: Code snip run",
+		["<F12>"] = "tool: Markdown preview",
+	})
 end
 
-function config.filetype()
-	-- In init.lua or filetype.nvim's config file
-	require("filetype").setup({
-		overrides = {
-			shebang = {
-				-- Set the filetype of files with a dash shebang to sh
-				dash = "sh",
-			},
+function config.dressing()
+	require("dressing").setup({
+		input = {
+			enabled = true,
+		},
+		select = {
+			enabled = true,
+			backend = "telescope",
+			trim_prompt = true,
 		},
 	})
 end

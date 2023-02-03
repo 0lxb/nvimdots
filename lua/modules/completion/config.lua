@@ -5,13 +5,20 @@ function config.nvim_lsp()
 end
 
 function config.lspsaga()
+	local icons = {
+		diagnostics = require("modules.ui.icons").get("diagnostics", true),
+		kind = require("modules.ui.icons").get("kind", true),
+		type = require("modules.ui.icons").get("type", true),
+		ui = require("modules.ui.icons").get("ui", true),
+	}
+
 	local function set_sidebar_icons()
 		-- Set icons for sidebar.
 		local diagnostic_icons = {
-			Error = " ",
-			Warn = " ",
-			Info = " ",
-			Hint = " ",
+			Error = icons.diagnostics.Error_alt,
+			Warn = icons.diagnostics.Warning_alt,
+			Info = icons.diagnostics.Information_alt,
+			Hint = icons.diagnostics.Hint_alt,
 		}
 		for type, icon in pairs(diagnostic_icons) do
 			local hl = "DiagnosticSign" .. type
@@ -19,75 +26,154 @@ function config.lspsaga()
 		end
 	end
 
-	local function get_palette()
-		if vim.g.colors_name == "catppuccin" then
-			-- If the colorscheme is catppuccin then use the palette.
-			return require("catppuccin.palettes").get_palette()
-		else
-			-- Default behavior: return lspsaga's default palette.
-			local palette = require("lspsaga.lspkind").colors
-			palette.peach = palette.orange
-			palette.flamingo = palette.orange
-			palette.rosewater = palette.yellow
-			palette.mauve = palette.violet
-			palette.sapphire = palette.blue
-			palette.maroon = palette.orange
-
-			return palette
-		end
-	end
-
 	set_sidebar_icons()
 
-	local colors = get_palette()
+	local colors = require("modules.utils").get_palette()
 
-	require("lspsaga").init_lsp_saga({
-		diagnostic_header = { " ", " ", "  ", " " },
-		custom_kind = {
-			File = { " ", colors.rosewater },
-			Module = { " ", colors.blue },
-			Namespace = { " ", colors.blue },
-			Package = { " ", colors.blue },
-			Class = { "ﴯ ", colors.yellow },
-			Method = { " ", colors.blue },
-			Property = { "ﰠ ", colors.teal },
-			Field = { " ", colors.teal },
-			Constructor = { " ", colors.sapphire },
-			Enum = { " ", colors.yellow },
-			Interface = { " ", colors.yellow },
-			Function = { " ", colors.blue },
-			Variable = { " ", colors.peach },
-			Constant = { " ", colors.peach },
-			String = { " ", colors.green },
-			Number = { " ", colors.peach },
-			Boolean = { " ", colors.peach },
-			Array = { " ", colors.peach },
-			Object = { " ", colors.yellow },
-			Key = { " ", colors.red },
-			Null = { "ﳠ ", colors.yellow },
-			EnumMember = { " ", colors.teal },
-			Struct = { " ", colors.yellow },
-			Event = { " ", colors.yellow },
-			Operator = { " ", colors.sky },
-			TypeParameter = { " ", colors.maroon },
-			-- ccls-specific icons.
-			TypeAlias = { " ", colors.green },
-			Parameter = { " ", colors.blue },
-			StaticMethod = { "ﴂ ", colors.peach },
-			Macro = { " ", colors.red },
+	require("lspsaga").setup({
+		preview = {
+			lines_above = 1,
+			lines_below = 17,
+		},
+		scroll_preview = {
+			scroll_down = "<C-j>",
+			scroll_up = "<C-k>",
+		},
+		request_timeout = 3000,
+		finder = {
+			edit = { "o", "<CR>" },
+			vsplit = "s",
+			split = "i",
+			tabe = "t",
+			quit = { "q", "<ESC>" },
+		},
+		definition = {
+			edit = "<C-c>o",
+			vsplit = "<C-c>v",
+			split = "<C-c>s",
+			tabe = "<C-c>t",
+			quit = "q",
+			close = "<Esc>",
+		},
+		code_action = {
+			num_shortcut = true,
+			keys = {
+				quit = "q",
+				exec = "<CR>",
+			},
+		},
+		lightbulb = {
+			enable = false,
+			sign = true,
+			enable_in_insert = true,
+			sign_priority = 20,
+			virtual_text = false,
+		},
+		diagnostic = {
+			show_code_action = true,
+			show_source = true,
+			jump_num_shortcut = true,
+			keys = {
+				exec_action = "<CR>",
+				quit = "q",
+				go_action = "g",
+			},
+		},
+		rename = {
+			quit = "<C-c>",
+			mark = "x",
+			confirm = "<CR>",
+			exec = "<CR>",
+			in_select = false,
+		},
+		outline = {
+			win_position = "right",
+			win_with = "_sagaoutline",
+			win_width = 30,
+			show_detail = true,
+			auto_preview = false,
+			auto_refresh = true,
+			auto_close = true,
+			keys = {
+				jump = "<CR>",
+				expand_collapse = "u",
+				quit = "q",
+			},
+		},
+		symbol_in_winbar = {
+			enable = false,
+			separator = " " .. icons.ui.Separator,
+			hide_keyword = true,
+			show_file = false,
+			color_mode = true,
+		},
+		beacon = {
+			enable = true,
+			frequency = 12,
+		},
+		ui = {
+			theme = "round",
+			border = "single", -- Can be single, double, rounded, solid, shadow.
+			winblend = 0,
+			expand = icons.ui.ArrowClosed,
+			collapse = icons.ui.ArrowOpen,
+			preview = icons.ui.Newspaper,
+			code_action = icons.ui.CodeAction,
+			diagnostic = icons.ui.Bug,
+			incoming = icons.ui.Incoming,
+			outgoing = icons.ui.Outgoing,
+			kind = {
+				-- Kind
+				Class = { icons.kind.Class, colors.yellow },
+				Constant = { icons.kind.Constant, colors.peach },
+				Constructor = { icons.kind.Constructor, colors.sapphire },
+				Enum = { icons.kind.Enum, colors.yellow },
+				EnumMember = { icons.kind.EnumMember, colors.teal },
+				Event = { icons.kind.Event, colors.yellow },
+				Field = { icons.kind.Field, colors.teal },
+				File = { icons.kind.File, colors.rosewater },
+				Function = { icons.kind.Function, colors.blue },
+				Interface = { icons.kind.Interface, colors.yellow },
+				Key = { icons.kind.Keyword, colors.red },
+				Method = { icons.kind.Method, colors.blue },
+				Module = { icons.kind.Module, colors.blue },
+				Namespace = { icons.kind.Namespace, colors.blue },
+				Number = { icons.kind.Number, colors.peach },
+				Operator = { icons.kind.Operator, colors.sky },
+				Package = { icons.kind.Package, colors.blue },
+				Property = { icons.kind.Property, colors.teal },
+				Struct = { icons.kind.Struct, colors.yellow },
+				TypeParameter = { icons.kind.TypeParameter, colors.maroon },
+				Variable = { icons.kind.Variable, colors.peach },
+				-- Type
+				Array = { icons.type.Array, colors.peach },
+				Boolean = { icons.type.Boolean, colors.peach },
+				Null = { icons.type.Null, colors.yellow },
+				Object = { icons.type.Object, colors.yellow },
+				String = { icons.type.String, colors.green },
+				-- ccls-specific icons.
+				TypeAlias = { icons.kind.TypeAlias, colors.green },
+				Parameter = { icons.kind.Parameter, colors.blue },
+				StaticMethod = { icons.kind.StaticMethod, colors.peach },
+				-- Microsoft-specific icons.
+				Text = { icons.kind.Text, colors.green },
+				Snippet = { icons.kind.Snippet, colors.mauve },
+				Folder = { icons.kind.Folder, colors.blue },
+				Unit = { icons.kind.Unit, colors.green },
+				Value = { icons.kind.Value, colors.peach },
+			},
 		},
 	})
 end
 
 function config.cmp()
-	-- vim.cmd([[packadd cmp-tabnine]])
+	local icons = {
+		kind = require("modules.ui.icons").get("kind", false),
+		type = require("modules.ui.icons").get("type", false),
+		cmp = require("modules.ui.icons").get("cmp", false),
+	}
 	local t = function(str)
 		return vim.api.nvim_replace_termcodes(str, true, true, true)
-	end
-
-	local has_words_before = function()
-		local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-		return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
 	end
 
 	local border = function(hl)
@@ -113,14 +199,25 @@ function config.cmp()
 	end
 
 	local compare = require("cmp.config.compare")
+	compare.lsp_scores = function(entry1, entry2)
+		local diff
+		if entry1.completion_item.score and entry2.completion_item.score then
+			diff = (entry2.completion_item.score * entry2.score) - (entry1.completion_item.score * entry1.score)
+		else
+			diff = entry2.score - entry1.score
+		end
+		return (diff < 0)
+	end
+
 	local lspkind = require("lspkind")
 	local cmp = require("cmp")
 
 	cmp.setup({
 		window = {
 			completion = {
-				border = border("CmpBorder"),
-				winhighlight = "Normal:CmpPmenu,CursorLine:PmenuSel,Search:None",
+				border = border("Normal"),
+				max_width = 80,
+				max_height = 20,
 			},
 			documentation = {
 				border = border("CmpDocBorder"),
@@ -134,7 +231,7 @@ function config.cmp()
 				-- require("cmp_tabnine.compare"),
 				compare.offset,
 				compare.exact,
-				compare.score,
+				compare.lsp_scores,
 				require("cmp-under-comparator").under,
 				compare.kind,
 				compare.sort_text,
@@ -143,12 +240,18 @@ function config.cmp()
 			},
 		},
 		formatting = {
-			format = lspkind.cmp_format({
-				mode = "symbol_text",
-				maxwidth = 50,
-				ellipsis_char = "...",
-				symbol_map = { Copilot = "" },
-			}),
+			fields = { "kind", "abbr", "menu" },
+			format = function(entry, vim_item)
+				local kind = lspkind.cmp_format({
+					mode = "symbol_text",
+					maxwidth = 50,
+					symbol_map = vim.tbl_deep_extend("force", icons.kind, icons.type, icons.cmp),
+				})(entry, vim_item)
+				local strings = vim.split(kind.kind, "%s", { trimempty = true })
+				kind.kind = " " .. strings[1] .. " "
+				kind.menu = "    (" .. strings[2] .. ")"
+				return kind
+			end,
 		},
 		-- You can set mappings if you want
 		mapping = cmp.mapping.preset.insert({
@@ -163,8 +266,6 @@ function config.cmp()
 					cmp.select_next_item()
 				elseif require("luasnip").expand_or_jumpable() then
 					vim.fn.feedkeys(t("<Plug>luasnip-expand-or-jump"), "")
-				elseif has_words_before() then
-					cmp.complete()
 				else
 					fallback()
 				end
@@ -202,7 +303,11 @@ function config.cmp()
 end
 
 function config.luasnip()
-	vim.o.runtimepath = vim.o.runtimepath .. "," .. os.getenv("HOME") .. "/.config/nvim/my-snippets/,"
+	local snippet_path = vim.fn.stdpath("config") .. "/my-snippets/"
+	if not vim.tbl_contains(vim.opt.rtp:get(), snippet_path) then
+		vim.opt.rtp:append(snippet_path)
+	end
+
 	require("luasnip").config.set_config({
 		history = true,
 		updateevents = "TextChanged,TextChangedI",
@@ -278,6 +383,29 @@ function config.mason_install()
 		-- Default: true
 		run_on_start = true,
 	})
+end
+
+function config.copilot()
+	vim.defer_fn(function()
+		require("copilot").setup({
+			cmp = {
+				enabled = true,
+				method = "getCompletionsCycling",
+			},
+			panel = {
+				-- if true, it can interfere with completions in copilot-cmp
+				enabled = false,
+			},
+			suggestion = {
+				-- if true, it can interfere with completions in copilot-cmp
+				enabled = false,
+			},
+			filetypes = {
+				["dap-repl"] = false,
+				["big_file_disabled_ft"] = false,
+			},
+		})
+	end, 100)
 end
 
 return config

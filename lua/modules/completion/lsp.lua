@@ -1,20 +1,41 @@
 local formatting = require("modules.completion.formatting")
 
-vim.cmd([[packadd lsp_signature.nvim]])
-vim.cmd([[packadd lspsaga.nvim]])
-vim.cmd([[packadd cmp-nvim-lsp]])
-vim.cmd([[packadd nvim-navic]])
-
 local nvim_lsp = require("lspconfig")
 local mason = require("mason")
 local mason_lsp = require("mason-lspconfig")
 
-mason.setup()
+require("lspconfig.ui.windows").default_options.border = "single"
+
+local icons = {
+	ui = require("modules.ui.icons").get("ui", true),
+	misc = require("modules.ui.icons").get("misc", true),
+}
+
+mason.setup({
+	ui = {
+		border = "rounded",
+		icons = {
+			package_pending = icons.ui.Modified_alt,
+			package_installed = icons.ui.Check,
+			package_uninstalled = icons.misc.Ghost,
+		},
+		keymaps = {
+			toggle_server_expand = "<CR>",
+			install_server = "i",
+			update_server = "u",
+			check_server_version = "c",
+			update_all_servers = "U",
+			check_outdated_servers = "C",
+			uninstall_server = "X",
+			cancel_installation = "<C-c>",
+		},
+	},
+})
 mason_lsp.setup({
 	ensure_installed = {
-		"bash-language-server",
+		"bashls",
 		"efm",
-		"lua-language-server",
+		"sumneko_lua",
 		"clangd",
 		"gopls",
 		"pyright",
@@ -22,7 +43,7 @@ mason_lsp.setup({
 })
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require("cmp_nvim_lsp").update_capabilities(capabilities)
+capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
 
 local function custom_attach(client, bufnr)
 	require("lsp_signature").on_attach({
@@ -32,9 +53,10 @@ local function custom_attach(client, bufnr)
 		fix_pos = true,
 		hint_enable = true,
 		hi_parameter = "Search",
-		handler_opts = { "double" },
+		handler_opts = {
+			border = "rounded",
+		},
 	})
-	require("nvim-navic").attach(client, bufnr)
 end
 
 local function switch_source_header_splitcmd(bufnr, splitcmd)
@@ -88,7 +110,7 @@ for _, server in ipairs(mason_lsp.get_installed_servers()) do
 			on_attach = custom_attach,
 			settings = {
 				Lua = {
-					diagnostics = { globals = { "vim", "packer_plugins" } },
+					diagnostics = { globals = { "vim" } },
 					workspace = {
 						library = {
 							[vim.fn.expand("$VIMRUNTIME/lua")] = true,
@@ -98,25 +120,24 @@ for _, server in ipairs(mason_lsp.get_installed_servers()) do
 						preloadFileSize = 10000,
 					},
 					telemetry = { enable = false },
+					-- Do not override treesitter lua highlighting with sumneko lua highlighting
+					semantic = { enable = false },
 				},
 			},
 		})
 	elseif server == "clangd" then
-		local copy_capabilities = capabilities
-		copy_capabilities.offsetEncoding = { "utf-16" }
 		nvim_lsp.clangd.setup({
-			capabilities = copy_capabilities,
+			capabilities = vim.tbl_deep_extend("keep", { offsetEncoding = { "utf-16", "utf-8" } }, capabilities),
 			single_file_support = true,
 			on_attach = custom_attach,
 			cmd = {
 				"clangd",
 				"--background-index",
 				"--pch-storage=memory",
-				-- You MUST set this arg ↓ to your clangd executable location (if not included)!
+				-- You MUST set this arg ↓ to your c/cpp compiler location (if not included)!
 				"--query-driver=/usr/bin/clang++,/usr/bin/**/clang-*,/bin/clang,/bin/clang++,/usr/bin/gcc,/usr/bin/g++",
 				"--clang-tidy",
 				"--all-scopes-completion",
-				"--cross-file-rename",
 				"--completion-style=detailed",
 				"--header-insertion-decorators",
 				"--header-insertion=iwyu",
@@ -199,7 +220,7 @@ for _, server in ipairs(mason_lsp.get_installed_servers()) do
 				},
 			},
 		})
-	else
+	elseif server ~= "efm" then
 		nvim_lsp[server].setup({
 			capabilities = capabilities,
 			on_attach = custom_attach,
@@ -241,7 +262,7 @@ local flake8 = require("efmls-configs.linters.flake8")
 local shellcheck = require("efmls-configs.linters.shellcheck")
 
 local black = require("efmls-configs.formatters.black")
-local luafmt = require("efmls-configs.formatters.stylua")
+local stylua = require("efmls-configs.formatters.stylua")
 local prettier = require("efmls-configs.formatters.prettier")
 local shfmt = require("efmls-configs.formatters.shfmt")
 
@@ -264,7 +285,7 @@ flake8 = vim.tbl_extend("force", flake8, {
 
 efmls.setup({
 	vim = { formatter = vint },
-	lua = { formatter = luafmt },
+	lua = { formatter = stylua },
 	c = { formatter = clangfmt },
 	cpp = { formatter = clangfmt },
 	python = { formatter = black },

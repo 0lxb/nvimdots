@@ -25,6 +25,7 @@ function config.alpha()
 		[[⠿⠛⠛⠛⠛⠛⠛⠻⢿⣿⣿⣿⣿⣯⣟⠷⢷⣿⡿⠋⠀⠀⠀⠀⣵⡀⢠⡿⠋⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿]],
 		[[⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠛⢿⣿⣿⠂⠀⠀⠀⠀⠀⢀⣽⣿⣿⣿⣿⣿⣿⣿⣍⠛⠿⣿⣿⣿⣿⣿⣿]],
 	}
+	dashboard.section.header.opts.hl = "Type"
 
 	local function button(sc, txt, leader_txt, keybind, keybind_opts)
 		local sc_after = sc:gsub("%s", ""):gsub(leader_txt, "<leader>")
@@ -58,20 +59,21 @@ function config.alpha()
 		}
 	end
 
-	local leader = "comma"
+	local leader = " "
 	dashboard.section.buttons.val = {
-		button("comma s c", " Scheme change", leader, "<cmd>Telescope colorscheme<cr>"),
-		button("comma f r", " File frecency", leader, "<cmd>Telescope frecency<cr>"),
-		button("comma f e", " File history", leader, "<cmd>Telescope oldfiles<cr>"),
-		button("comma f p", " Project find", leader, "<cmd>Telescope project<cr>"),
-		button("comma f f", " File find", leader, "<cmd>Telescope find_files<cr>"),
-		button("comma f n", " File new", leader, "<cmd>enew<cr>"),
-		button("comma f w", " Word find", leader, "<cmd>Telescope live_grep<cr>"),
+		button("space f c", " Scheme change", leader, "<cmd>Telescope colorscheme<cr>"),
+		button("space f r", " File frecency", leader, "<cmd>Telescope frecency<cr>"),
+		button("space f e", " File history", leader, "<cmd>Telescope oldfiles<cr>"),
+		button("space f p", " Project find", leader, "<cmd>Telescope projects<cr>"),
+		button("space f f", " File find", leader, "<cmd>Telescope find_files<cr>"),
+		button("space f n", " File new", leader, "<cmd>enew<cr>"),
+		button("space f w", " Word find", leader, "<cmd>Telescope live_grep<cr>"),
 	}
 	dashboard.section.buttons.opts.hl = "String"
 
 	local function footer()
-		local total_plugins = #vim.tbl_keys(packer_plugins)
+		local stats = require("lazy").stats()
+		local ms = (math.floor(stats.startuptime * 100 + 0.5) / 100)
 		return "   Have Fun with neovim"
 			.. "   v"
 			.. vim.version().major
@@ -80,8 +82,10 @@ function config.alpha()
 			.. "."
 			.. vim.version().patch
 			.. "   "
-			.. total_plugins
-			.. " plugins"
+			.. stats.count
+			.. " plugins in "
+			.. ms
+			.. "ms"
 	end
 
 	dashboard.section.footer.val = footer()
@@ -102,6 +106,14 @@ function config.alpha()
 	}
 
 	alpha.setup(dashboard.opts)
+
+	vim.api.nvim_create_autocmd("User", {
+		pattern = "LazyVimStarted",
+		callback = function()
+			dashboard.section.footer.val = footer()
+			pcall(vim.cmd.AlphaRedraw)
+		end,
+	})
 end
 
 function config.edge()
@@ -123,71 +135,11 @@ function config.nord()
 end
 
 function config.catppuccin()
-	local function get_modified_palette()
-		-- We need to explicitly declare our new color.
-		-- (Because colors haven't been set yet when we pass them to the setup function.)
-
-		local cp = require("catppuccin.palettes").get_palette() -- Get the palette.
-		cp.none = "NONE" -- Special setting for complete transparent fg/bg.
-
-		if vim.g.catppuccin_flavour == "mocha" then -- We only modify the "mocha" palette.
-			cp.rosewater = "#F5E0DC"
-			cp.flamingo = "#F2CDCD"
-			cp.mauve = "#DDB6F2"
-			cp.pink = "#F5C2E7"
-			cp.red = "#F28FAD"
-			cp.maroon = "#E8A2AF"
-			cp.peach = "#F8BD96"
-			cp.yellow = "#FAE3B0"
-			cp.green = "#ABE9B3"
-			cp.blue = "#96CDFB"
-			cp.sky = "#89DCEB"
-			cp.teal = "#B5E8E0"
-			cp.lavender = "#C9CBFF"
-
-			cp.text = "#D9E0EE"
-			cp.subtext1 = "#BAC2DE"
-			cp.subtext0 = "#A6ADC8"
-			cp.overlay2 = "#C3BAC6"
-			cp.overlay1 = "#988BA2"
-			cp.overlay0 = "#6E6C7E"
-			cp.surface2 = "#6E6C7E"
-			cp.surface1 = "#575268"
-			cp.surface0 = "#302D41"
-
-			cp.base = "#1E1E2E"
-			cp.mantle = "#1A1826"
-			cp.crust = "#161320"
-		end
-
-		return cp
-	end
-
-	local function set_auto_compile(enable_compile)
-		-- Setting auto-compile for catppuccin.
-		if enable_compile then
-			vim.api.nvim_create_augroup("_catppuccin", { clear = true })
-
-			vim.api.nvim_create_autocmd("User", {
-				group = "_catppuccin",
-				pattern = "PackerCompileDone",
-				callback = function()
-					require("catppuccin").compile()
-					vim.defer_fn(function()
-						vim.cmd([[colorscheme catppuccin]])
-					end, 0)
-				end,
-			})
-		end
-	end
-
-	vim.g.catppuccin_flavour = "mocha" -- Set flavour here
-	local cp = get_modified_palette()
-
-	local enable_compile = true -- Set to false if you would like to disable catppuccin cache. (Not recommended)
-	set_auto_compile(enable_compile)
+	local transparent_background = false -- Set background transparency here!
 
 	require("catppuccin").setup({
+		flavour = "mocha", -- Can be one of: latte, frappe, macchiato, mocha
+		background = { light = "latte", dark = "mocha" },
 		dim_inactive = {
 			enabled = false,
 			-- Dim inactive splits/windows/buffers.
@@ -195,12 +147,10 @@ function config.catppuccin()
 			shade = "dark",
 			percentage = 0.15,
 		},
-		transparent_background = false,
+		transparent_background = transparent_background,
+		show_end_of_buffer = false, -- show the '~' characters after the end of buffers
 		term_colors = true,
-		compile = {
-			enabled = enable_compile,
-			path = vim.fn.stdpath("cache") .. "/catppuccin",
-		},
+		compile_path = vim.fn.stdpath("cache") .. "/catppuccin",
 		styles = {
 			comments = { "italic" },
 			properties = { "italic" },
@@ -232,39 +182,46 @@ function config.catppuccin()
 					information = { "underline" },
 				},
 			},
-			lsp_trouble = true,
-			lsp_saga = true,
+			aerial = false,
+			barbar = false,
+			beacon = false,
+			cmp = true,
+			coc_nvim = false,
+			dap = { enabled = true, enable_ui = true },
+			dashboard = false,
+			fern = false,
+			fidget = true,
 			gitgutter = false,
 			gitsigns = true,
-			telescope = true,
-			nvimtree = true,
-			which_key = true,
-			indent_blankline = { enabled = true, colored_indent_levels = false },
-			dashboard = true,
-			neogit = false,
-			vim_sneak = false,
-			fern = false,
-			barbar = false,
-			markdown = true,
-			lightspeed = false,
-			ts_rainbow = true,
+			harpoon = false,
 			hop = true,
 			illuminate = true,
-			cmp = true,
-			dap = { enabled = true, enable_ui = true },
-			notify = true,
-			symbols_outline = false,
-			coc_nvim = false,
+			indent_blankline = { enabled = true, colored_indent_levels = false },
 			leap = false,
-			neotree = { enabled = false, show_root = true, transparent_panel = false },
-			telekasten = false,
+			lightspeed = false,
+			lsp_saga = true,
+			lsp_trouble = true,
+			markdown = true,
+			mason = true,
 			mini = false,
-			aerial = false,
-			vimwiki = true,
-			beacon = false,
-			navic = { enabled = true, custom_bg = "NONE" },
+			navic = { enabled = false },
+			neogit = false,
+			neotest = false,
+			neotree = { enabled = false, show_root = true, transparent_panel = false },
+			noice = false,
+			notify = true,
+			nvimtree = true,
 			overseer = false,
-			fidget = true,
+			pounce = false,
+			semantic_tokens = false,
+			symbols_outline = false,
+			telekasten = false,
+			telescope = true,
+			treesitter_context = false,
+			ts_rainbow = true,
+			vim_sneak = false,
+			vimwiki = false,
+			which_key = true,
 		},
 		color_overrides = {
 			mocha = {
@@ -298,108 +255,156 @@ function config.catppuccin()
 			},
 		},
 		highlight_overrides = {
-			mocha = {
-				-- For base configs.
-				CursorLineNr = { fg = cp.green },
-				Search = { bg = cp.surface1, fg = cp.pink, style = { "bold" } },
-				IncSearch = { bg = cp.pink, fg = cp.surface1 },
+			mocha = function(cp)
+				return {
+					-- For base configs.
+					NormalFloat = { fg = cp.text, bg = transparent_background and cp.none or cp.base },
+					CursorLineNr = { fg = cp.green },
+					Search = { bg = cp.surface1, fg = cp.pink, style = { "bold" } },
+					IncSearch = { bg = cp.pink, fg = cp.surface1 },
+					Keyword = { fg = cp.pink },
+					Type = { fg = cp.blue },
+					Typedef = { fg = cp.yellow },
+					StorageClass = { fg = cp.red, style = { "italic" } },
 
-				-- For native lsp configs.
-				DiagnosticVirtualTextError = { bg = cp.none },
-				DiagnosticVirtualTextWarn = { bg = cp.none },
-				DiagnosticVirtualTextInfo = { bg = cp.none },
-				DiagnosticVirtualTextHint = { fg = cp.rosewater, bg = cp.none },
+					-- For native lsp configs.
+					DiagnosticVirtualTextError = { bg = cp.none },
+					DiagnosticVirtualTextWarn = { bg = cp.none },
+					DiagnosticVirtualTextInfo = { bg = cp.none },
+					DiagnosticVirtualTextHint = { fg = cp.rosewater, bg = cp.none },
 
-				DiagnosticHint = { fg = cp.rosewater },
-				LspDiagnosticsDefaultHint = { fg = cp.rosewater },
-				LspDiagnosticsHint = { fg = cp.rosewater },
-				LspDiagnosticsVirtualTextHint = { fg = cp.rosewater },
-				LspDiagnosticsUnderlineHint = { sp = cp.rosewater },
+					DiagnosticHint = { fg = cp.rosewater },
+					LspDiagnosticsDefaultHint = { fg = cp.rosewater },
+					LspDiagnosticsHint = { fg = cp.rosewater },
+					LspDiagnosticsVirtualTextHint = { fg = cp.rosewater },
+					LspDiagnosticsUnderlineHint = { sp = cp.rosewater },
 
-				-- For fidget.
-				FidgetTask = { bg = cp.none, fg = cp.surface2 },
-				FidgetTitle = { fg = cp.blue, style = { "bold" } },
+					-- For fidget.
+					FidgetTask = { bg = cp.none, fg = cp.surface2 },
+					FidgetTitle = { fg = cp.blue, style = { "bold" } },
 
-				-- For treesitter.
-				TSField = { fg = cp.rosewater },
-				TSProperty = { fg = cp.yellow },
+					-- For trouble.nvim
+					TroubleNormal = { bg = cp.base },
 
-				TSInclude = { fg = cp.teal },
-				TSOperator = { fg = cp.sky },
-				TSKeywordOperator = { fg = cp.sky },
-				TSPunctSpecial = { fg = cp.maroon },
+					-- For treesitter.
+					["@field"] = { fg = cp.rosewater },
+					["@property"] = { fg = cp.yellow },
 
-				-- TSFloat = { fg = cp.peach },
-				-- TSNumber = { fg = cp.peach },
-				-- TSBoolean = { fg = cp.peach },
+					["@include"] = { fg = cp.teal },
+					-- ["@operator"] = { fg = cp.sky },
+					["@keyword.operator"] = { fg = cp.sky },
+					["@punctuation.special"] = { fg = cp.maroon },
 
-				TSConstructor = { fg = cp.lavender },
-				-- TSConstant = { fg = cp.peach },
-				-- TSConditional = { fg = cp.mauve },
-				-- TSRepeat = { fg = cp.mauve },
-				TSException = { fg = cp.peach },
+					-- ["@float"] = { fg = cp.peach },
+					-- ["@number"] = { fg = cp.peach },
+					-- ["@boolean"] = { fg = cp.peach },
 
-				TSConstBuiltin = { fg = cp.lavender },
-				-- TSFuncBuiltin = { fg = cp.peach, style = { "italic" } },
-				-- TSTypeBuiltin = { fg = cp.yellow, style = { "italic" } },
-				TSVariableBuiltin = { fg = cp.red, style = { "italic" } },
+					["@constructor"] = { fg = cp.lavender },
+					-- ["@constant"] = { fg = cp.peach },
+					-- ["@conditional"] = { fg = cp.mauve },
+					-- ["@repeat"] = { fg = cp.mauve },
+					["@exception"] = { fg = cp.peach },
 
-				-- TSFunction = { fg = cp.blue },
-				TSFuncMacro = { fg = cp.red, style = {} },
-				TSParameter = { fg = cp.rosewater },
-				TSKeywordFunction = { fg = cp.maroon },
-				TSKeyword = { fg = cp.red },
-				TSKeywordReturn = { fg = cp.pink, style = {} },
+					["@constant.builtin"] = { fg = cp.lavender },
+					-- ["@function.builtin"] = { fg = cp.peach, style = { "italic" } },
+					-- ["@type.builtin"] = { fg = cp.yellow, style = { "italic" } },
+					["@type.qualifier"] = { link = "@keyword" },
+					["@variable.builtin"] = { fg = cp.red, style = { "italic" } },
 
-				-- TSNote = { fg = cp.base, bg = cp.blue },
-				-- TSWarning = { fg = cp.base, bg = cp.yellow },
-				-- TSDanger = { fg = cp.base, bg = cp.red },
-				-- TSConstMacro = { fg = cp.mauve },
+					-- ["@function"] = { fg = cp.blue },
+					["@function.macro"] = { fg = cp.red, style = {} },
+					["@parameter"] = { fg = cp.rosewater },
+					["@keyword"] = { fg = cp.red, style = { "italic" } },
+					["@keyword.function"] = { fg = cp.maroon },
+					["@keyword.return"] = { fg = cp.pink, style = {} },
 
-				-- TSLabel = { fg = cp.blue },
-				TSMethod = { style = { "italic" } },
-				TSNamespace = { fg = cp.rosewater },
+					-- ["@text.note"] = { fg = cp.base, bg = cp.blue },
+					-- ["@text.warning"] = { fg = cp.base, bg = cp.yellow },
+					-- ["@text.danger"] = { fg = cp.base, bg = cp.red },
+					-- ["@constant.macro"] = { fg = cp.mauve },
 
-				TSPunctDelimiter = { fg = cp.teal },
-				TSPunctBracket = { fg = cp.overlay2 },
-				-- TSString = { fg = cp.green },
-				-- TSStringRegex = { fg = cp.peach },
-				-- TSType = { fg = cp.yellow },
-				TSVariable = { fg = cp.text },
-				TSTagAttribute = { fg = cp.mauve, style = { "italic" } },
-				TSTag = { fg = cp.peach },
-				TSTagDelimiter = { fg = cp.maroon },
-				TSText = { fg = cp.text },
+					-- ["@label"] = { fg = cp.blue },
+					["@method"] = { fg = cp.blue, style = { "italic" } },
+					["@namespace"] = { fg = cp.rosewater, style = {} },
 
-				-- TSURI = { fg = cp.rosewater, style = { "italic", "underline" } },
-				-- TSLiteral = { fg = cp.teal, style = { "italic" } },
-				-- TSTextReference = { fg = cp.lavender, style = { "bold" } },
-				-- TSTitle = { fg = cp.blue, style = { "bold" } },
-				-- TSEmphasis = { fg = cp.maroon, style = { "italic" } },
-				-- TSStrong = { fg = cp.maroon, style = { "bold" } },
-				-- TSStringEscape = { fg = cp.pink },
+					["@punctuation.delimiter"] = { fg = cp.teal },
+					["@punctuation.bracket"] = { fg = cp.overlay2 },
+					-- ["@string"] = { fg = cp.green },
+					-- ["@string.regex"] = { fg = cp.peach },
+					["@type"] = { fg = cp.yellow },
+					["@variable"] = { fg = cp.text },
+					["@tag.attribute"] = { fg = cp.mauve, style = { "italic" } },
+					["@tag"] = { fg = cp.peach },
+					["@tag.delimiter"] = { fg = cp.maroon },
+					["@text"] = { fg = cp.text },
 
-				bashTSFuncBuiltin = { fg = cp.red, style = { "italic" } },
-				bashTSParameter = { fg = cp.yellow, style = { "italic" } },
+					-- ["@text.uri"] = { fg = cp.rosewater, style = { "italic", "underline" } },
+					-- ["@text.literal"] = { fg = cp.teal, style = { "italic" } },
+					-- ["@text.reference"] = { fg = cp.lavender, style = { "bold" } },
+					-- ["@text.title"] = { fg = cp.blue, style = { "bold" } },
+					-- ["@text.emphasis"] = { fg = cp.maroon, style = { "italic" } },
+					-- ["@text.strong"] = { fg = cp.maroon, style = { "bold" } },
+					-- ["@string.escape"] = { fg = cp.pink },
 
-				luaTSField = { fg = cp.lavender },
-				luaTSConstructor = { fg = cp.flamingo },
+					-- ["@property.toml"] = { fg = cp.blue },
+					-- ["@field.yaml"] = { fg = cp.blue },
 
-				javaTSConstant = { fg = cp.teal },
+					-- ["@label.json"] = { fg = cp.blue },
 
-				typescriptTSProperty = { fg = cp.lavender, style = { "italic" } },
+					["@function.builtin.bash"] = { fg = cp.red, style = { "italic" } },
+					["@parameter.bash"] = { fg = cp.yellow, style = { "italic" } },
 
-				cssTSType = { fg = cp.lavender },
-				cssTSProperty = { fg = cp.yellow, style = { "italic" } },
+					["@field.lua"] = { fg = cp.lavender },
+					["@constructor.lua"] = { fg = cp.flamingo },
 
-				cppTSProperty = { fg = cp.text },
-			},
+					["@constant.java"] = { fg = cp.teal },
+
+					["@property.typescript"] = { fg = cp.lavender, style = { "italic" } },
+					-- ["@constructor.typescript"] = { fg = cp.lavender },
+
+					-- ["@constructor.tsx"] = { fg = cp.lavender },
+					-- ["@tag.attribute.tsx"] = { fg = cp.mauve },
+
+					["@type.css"] = { fg = cp.lavender },
+					["@property.css"] = { fg = cp.yellow, style = { "italic" } },
+
+					["@type.builtin.c"] = { fg = cp.yellow, style = {} },
+
+					["@property.cpp"] = { fg = cp.text },
+					["@type.builtin.cpp"] = { fg = cp.yellow, style = {} },
+
+					-- ["@symbol"] = { fg = cp.flamingo },
+				}
+			end,
+		},
+	})
+end
+
+function config.neodim()
+	local blend_color = require("modules.utils").hl_to_rgb("Normal", true)
+
+	require("neodim").setup({
+		alpha = 0.45,
+		blend_color = blend_color,
+		update_in_insert = {
+			enable = true,
+			delay = 100,
+		},
+		hide = {
+			virtual_text = true,
+			signs = false,
+			underline = false,
 		},
 	})
 end
 
 function config.notify()
 	local notify = require("notify")
+	local icons = {
+		diagnostics = require("modules.ui.icons").get("diagnostics"),
+		ui = require("modules.ui.icons").get("ui"),
+	}
+
 	notify.setup({
 		---@usage Animation style one of { "fade", "slide", "fade_in_slide_out", "static" }
 		stages = "slide",
@@ -409,6 +414,8 @@ function config.notify()
 		on_close = nil,
 		---@usage timeout for notifications in ms, default 5000
 		timeout = 2000,
+		-- @usage User render fps value
+		fps = 30,
 		-- Render function for notifications. See notify-render()
 		render = "default",
 		---@usage highlight behind the window for stages that change opacity
@@ -419,11 +426,11 @@ function config.notify()
 		level = "TRACE",
 		---@usage Icons for the different levels
 		icons = {
-			ERROR = "",
-			WARN = "",
-			INFO = "",
-			DEBUG = "",
-			TRACE = "✎",
+			ERROR = icons.diagnostics.Error,
+			WARN = icons.diagnostics.Warning,
+			INFO = icons.diagnostics.Information,
+			DEBUG = icons.ui.Bug,
+			TRACE = icons.ui.Pencil,
 		},
 	})
 
@@ -431,11 +438,41 @@ function config.notify()
 end
 
 function config.lualine()
-	local navic = require("nvim-navic")
+	local colors = require("modules.utils").get_palette()
+	local icons = {
+		diagnostics = require("modules.ui.icons").get("diagnostics", true),
+		misc = require("modules.ui.icons").get("misc", true),
+		ui = require("modules.ui.icons").get("ui", true),
+	}
 
 	local function escape_status()
 		local ok, m = pcall(require, "better_escape")
-		return ok and m.waiting and "✺ " or ""
+		return ok and m.waiting and icons.misc.EscapeST or ""
+	end
+
+	local _cache = { context = "", bufnr = -1 }
+	local function lspsaga_symbols()
+		local exclude = {
+			["terminal"] = true,
+			["toggleterm"] = true,
+			["prompt"] = true,
+			["NvimTree"] = true,
+			["help"] = true,
+		}
+		if vim.api.nvim_win_get_config(0).zindex or exclude[vim.bo.filetype] then
+			return "" -- Excluded filetypes
+		else
+			local currbuf = vim.api.nvim_get_current_buf()
+			local ok, lspsaga = pcall(require, "lspsaga.symbolwinbar")
+			if ok and lspsaga:get_winbar() ~= nil then
+				_cache.context = lspsaga:get_winbar()
+				_cache.bufnr = currbuf
+			elseif _cache.bufnr ~= currbuf then
+				_cache.context = "" -- Reset [invalid] cache (usually from another buffer)
+			end
+
+			return _cache.context
+		end
 	end
 
 	local function diff_source()
@@ -449,44 +486,33 @@ function config.lualine()
 		end
 	end
 
+	local function get_cwd()
+		local cwd = vim.fn.getcwd()
+		local is_windows = require("core.global").is_windows
+		if not is_windows then
+			local home = require("core.global").home
+			if cwd:find(home, 1, true) == 1 then
+				cwd = "~" .. cwd:sub(#home + 1)
+			end
+		end
+		return icons.ui.RootFolderOpened .. cwd
+	end
+
 	local mini_sections = {
-		lualine_a = {},
+		lualine_a = { "filetype" },
 		lualine_b = {},
 		lualine_c = {},
 		lualine_x = {},
 		lualine_y = {},
-		lualine_z = { "location" },
-	}
-	local simple_sections = {
-		lualine_a = { "mode" },
-		lualine_b = { "filetype" },
-		lualine_c = {},
-		lualine_x = {},
-		lualine_y = {},
-		lualine_z = { "location" },
+		lualine_z = {},
 	}
 	local outline = {
 		sections = mini_sections,
 		filetypes = { "lspsagaoutline" },
 	}
-	local dapui_scopes = {
-		sections = simple_sections,
-		filetypes = { "dapui_scopes" },
-	}
-
-	local dapui_breakpoints = {
-		sections = simple_sections,
-		filetypes = { "dapui_breakpoints" },
-	}
-
-	local dapui_stacks = {
-		sections = simple_sections,
-		filetypes = { "dapui_stacks" },
-	}
-
-	local dapui_watches = {
-		sections = simple_sections,
-		filetypes = { "dapui_watches" },
+	local diffview = {
+		sections = mini_sections,
+		filetypes = { "DiffviewFiles" },
 	}
 
 	local function python_venv()
@@ -523,18 +549,21 @@ function config.lualine()
 			section_separators = { left = "", right = "" },
 		},
 		sections = {
-			lualine_a = { "mode" },
+			lualine_a = { { "mode" } },
 			lualine_b = { { "branch" }, { "diff", source = diff_source } },
-			lualine_c = {
-				{ navic.get_location, cond = navic.is_available },
-			},
+			lualine_c = { lspsaga_symbols },
 			lualine_x = {
 				{ escape_status },
 				{
 					"diagnostics",
 					sources = { "nvim_diagnostic" },
-					symbols = { error = " ", warn = " ", info = " " },
+					symbols = {
+						error = icons.diagnostics.Error,
+						warn = icons.diagnostics.Warning,
+						info = icons.diagnostics.Information,
+					},
 				},
+				{ get_cwd },
 			},
 			lualine_y = {
 				{ "filetype", colored = true, icon_only = true },
@@ -564,93 +593,44 @@ function config.lualine()
 		extensions = {
 			"quickfix",
 			"nvim-tree",
+			"nvim-dap-ui",
 			"toggleterm",
 			"fugitive",
 			outline,
-			dapui_scopes,
-			dapui_breakpoints,
-			dapui_stacks,
-			dapui_watches,
+			diffview,
 		},
 	})
-end
 
-function config.nvim_gps()
-	require("nvim-gps").setup({
-		icons = {
-			["class-name"] = " ", -- Classes and class-like objects
-			["function-name"] = " ", -- Functions
-			["method-name"] = " ", -- Methods (functions inside class-like objects)
-		},
-		languages = {
-			-- You can disable any language individually here
-			["c"] = true,
-			["cpp"] = true,
-			["go"] = true,
-			["java"] = true,
-			["javascript"] = true,
-			["lua"] = true,
-			["python"] = true,
-			["rust"] = true,
-		},
-		separator = " > ",
-	})
-end
-
-function config.nvim_navic()
-	vim.g.navic_silence = true
-
-	require("nvim-navic").setup({
-		icons = {
-			Method = " ",
-			Function = " ",
-			Constructor = " ",
-			Field = " ",
-			Variable = " ",
-			Class = "ﴯ ",
-			Interface = " ",
-			Module = " ",
-			Property = "ﰠ ",
-			Enum = " ",
-			File = " ",
-			EnumMember = " ",
-			Constant = " ",
-			Struct = " ",
-			Event = " ",
-			Operator = " ",
-			TypeParameter = " ",
-			Namespace = " ",
-			Object = " ",
-			Array = " ",
-			Boolean = " ",
-			Number = " ",
-			Null = "ﳠ ",
-			Key = " ",
-			String = " ",
-			Package = " ",
-		},
-		highlight = true,
-		separator = " > ",
-		depth_limit = 0,
-		depth_limit_indicator = "..",
-	})
+	-- Properly set background color for lspsaga
+	local winbar_bg = require("modules.utils").hl_to_rgb("StatusLine", true, colors.mantle)
+	for _, hlGroup in pairs(require("lspsaga.lspkind").get_kind()) do
+		require("modules.utils").extend_hl("LspSagaWinbar" .. hlGroup[1], { bg = winbar_bg })
+	end
+	require("modules.utils").extend_hl("LspSagaWinbarSep", { bg = winbar_bg })
 end
 
 function config.nvim_tree()
+	local icons = {
+		diagnostics = require("modules.ui.icons").get("diagnostics"),
+		documents = require("modules.ui.icons").get("documents"),
+		git = require("modules.ui.icons").get("git"),
+		ui = require("modules.ui.icons").get("ui"),
+	}
+
 	require("nvim-tree").setup({
 		create_in_closed_folder = false,
-		respect_buf_cwd = true,
+		respect_buf_cwd = false,
 		auto_reload_on_write = true,
 		disable_netrw = false,
 		hijack_cursor = true,
 		hijack_netrw = true,
-		hijack_unnamed_buffer_when_opening = false,
+		hijack_unnamed_buffer_when_opening = true,
 		ignore_buffer_on_setup = false,
 		open_on_setup = false,
 		open_on_setup_file = false,
 		open_on_tab = false,
 		sort_by = "name",
-		update_cwd = true,
+		sync_root_with_cwd = true,
 		view = {
 			adaptive_size = false,
 			centralize_selection = false,
@@ -690,7 +670,7 @@ function config.nvim_tree()
 					none = "  ",
 				},
 			},
-			root_folder_modifier = ":e",
+			root_folder_label = ":.:s?.*?/..?",
 			icons = {
 				webdev_colors = true,
 				git_placement = "before",
@@ -703,29 +683,29 @@ function config.nvim_tree()
 				padding = " ",
 				symlink_arrow = "  ",
 				glyphs = {
-					default = "", --
-					symlink = "",
-					bookmark = "",
+					default = icons.documents.Default, --
+					symlink = icons.documents.Symlink, --
+					bookmark = icons.ui.Bookmark,
 					git = {
-						unstaged = "",
-						staged = "", --
-						unmerged = "שׂ",
-						renamed = "", --
-						untracked = "ﲉ",
-						deleted = "",
-						ignored = "", --◌
+						unstaged = icons.git.Mod_alt,
+						staged = icons.git.Add, --
+						unmerged = icons.git.Unmerged,
+						renamed = icons.git.Rename, --
+						untracked = icons.git.Untracked, -- "ﲉ"
+						deleted = icons.git.Remove, --
+						ignored = icons.git.Ignore, --◌
 					},
 					folder = {
 						-- arrow_open = "",
 						-- arrow_closed = "",
 						arrow_open = "",
 						arrow_closed = "",
-						default = "",
-						open = "",
-						empty = "",
-						empty_open = "",
-						symlink = "",
-						symlink_open = "",
+						default = icons.ui.Folder,
+						open = icons.ui.FolderOpen,
+						empty = icons.ui.EmptyFolder,
+						empty_open = icons.ui.EmptyFolderOpen,
+						symlink = icons.ui.SymlinkFolder,
+						symlink_open = icons.ui.FolderOpen,
 					},
 				},
 			},
@@ -736,7 +716,7 @@ function config.nvim_tree()
 		},
 		update_focused_file = {
 			enable = true,
-			update_cwd = true,
+			update_root = true,
 			ignore_list = {},
 		},
 		ignore_ft_on_setup = {},
@@ -758,8 +738,8 @@ function config.nvim_tree()
 					enable = true,
 					chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
 					exclude = {
-						filetype = { "notify", "packer", "qf", "diff", "fugitive", "fugitiveblame" },
-						buftype = { "nofile", "terminal", "help" },
+						filetype = { "notify", "qf", "diff", "fugitive", "fugitiveblame" },
+						buftype = { "terminal", "help" },
 					},
 				},
 			},
@@ -772,10 +752,10 @@ function config.nvim_tree()
 			show_on_dirs = false,
 			debounce_delay = 50,
 			icons = {
-				hint = "",
-				info = "",
-				warning = "",
-				error = "",
+				hint = icons.diagnostics.Hint_alt,
+				info = icons.diagnostics.Information_alt,
+				warning = icons.diagnostics.Warning_alt,
+				error = icons.diagnostics.Error_alt,
 			},
 		},
 		filesystem_watchers = {
@@ -814,13 +794,15 @@ function config.nvim_tree()
 end
 
 function config.nvim_bufferline()
+	local icons = { ui = require("modules.ui.icons").get("ui") }
+
 	local opts = {
 		options = {
 			number = nil,
-			modified_icon = "✥",
-			buffer_close_icon = "",
-			left_trunc_marker = "",
-			right_trunc_marker = "",
+			modified_icon = icons.ui.Modified,
+			buffer_close_icon = icons.ui.Close,
+			left_trunc_marker = icons.ui.Left,
+			right_trunc_marker = icons.ui.Right,
 			max_name_length = 14,
 			max_prefix_length = 13,
 			tab_size = 20,
@@ -837,6 +819,12 @@ function config.nvim_bufferline()
 					text_align = "center",
 					padding = 1,
 				},
+				{
+					filetype = "lspsagaoutline",
+					text = "Lspsaga Outline",
+					text_align = "center",
+					padding = 1,
+				},
 			},
 			diagnostics_indicator = function(count)
 				return "(" .. count .. ")"
@@ -848,28 +836,13 @@ function config.nvim_bufferline()
 	}
 
 	if vim.g.colors_name == "catppuccin" then
-		local cp = require("catppuccin.palettes").get_palette() -- Get the palette.
-		cp.none = "NONE" -- Special setting for complete transparent fg/bg.
+		local cp = require("modules.utils").get_palette() -- Get the palette.
 
 		local catppuccin_hl_overwrite = {
 			highlights = require("catppuccin.groups.integrations.bufferline").get({
 				styles = { "italic", "bold" },
 				custom = {
 					mocha = {
-						-- Warnings
-						warning = { fg = cp.yellow },
-						warning_visible = { fg = cp.yellow },
-						warning_selected = { fg = cp.yellow },
-						warning_diagnostic = { fg = cp.yellow },
-						warning_diagnostic_visible = { fg = cp.yellow },
-						warning_diagnostic_selected = { fg = cp.yellow },
-						-- Infos
-						info = { fg = cp.sky },
-						info_visible = { fg = cp.sky },
-						info_selected = { fg = cp.sky },
-						info_diagnostic = { fg = cp.sky },
-						info_diagnostic_visible = { fg = cp.sky },
-						info_diagnostic_selected = { fg = cp.sky },
 						-- Hint
 						hint = { fg = cp.rosewater },
 						hint_visible = { fg = cp.rosewater },
@@ -968,7 +941,6 @@ function config.indent_blankline()
 			"log",
 			"fugitive",
 			"gitcommit",
-			"packer",
 			"vimwiki",
 			"markdown",
 			"json",
@@ -980,7 +952,6 @@ function config.indent_blankline()
 			"peekaboo",
 			"git",
 			"TelescopePrompt",
-			"undotree",
 			"flutterToolsOutline",
 			"", -- for all buffers without a file type
 		},
@@ -1005,8 +976,6 @@ function config.indent_blankline()
 		},
 		space_char_blankline = " ",
 	})
-	-- because lazy load indent-blankline so need readd this autocmd
-	vim.cmd("autocmd CursorMoved * IndentBlanklineRefresh")
 end
 
 function config.scrollview()
@@ -1017,20 +986,6 @@ function config.fidget()
 	require("fidget").setup({
 		window = { blend = 0 },
 	})
-end
-
-function config.FTerm()
-	require("FTerm").setup({
-		border = 'double',
-		dimensions  = {
-		height = 0.9,
-		width = 0.9,
-	},
-})
-end
-
-function config.gitui()
-	require("gitui").setup()
 end
 
 return config
