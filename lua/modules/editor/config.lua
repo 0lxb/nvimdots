@@ -83,7 +83,7 @@ function config.nvim_treesitter()
 	if use_ssh then
 		local parsers = require("nvim-treesitter.parsers").get_parser_configs()
 		for _, p in pairs(parsers) do
-			p.install_info.url = p.install_info.url:gsub("https://github.com/", "git@github.com:")
+			p.install_info.url = p.install_info.url:gsub("https://github.com/", "https://github.com/")
 		end
 	end
 end
