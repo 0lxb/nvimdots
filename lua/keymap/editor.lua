@@ -93,6 +93,9 @@ local plug_map = {
 	-- Plugin: tabout
 	["i|<A-l>"] = map_cmd("<Plug>(TaboutMulti)"):with_silent():with_noremap():with_desc("edit: Goto end of pair"),
 	["i|<A-h>"] = map_cmd("<Plug>(TaboutBackMulti)"):with_silent():with_noremap():with_desc("edit: Goto begin of pair"),
+
+	-- Plugin: tagbar
+	["n|<F3>"] = map_cr("TagbarToggle"):with_noremap():with_silent(),
 }
 
 bind.nvim_load_mapping(plug_map)
