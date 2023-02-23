@@ -66,10 +66,6 @@ editor["romainl/vim-cool"] = {
 	lazy = true,
 	event = { "CursorMoved", "InsertEnter" },
 }
-editor["preservim/tagbar"] = {
-	opt = true,
-	cmd = { "TagbarToggle" },
-}
 
 ----------------------------------------------------------------------
 --                  :treesitter related plugins                    --

@@ -73,8 +73,5 @@ ui["edluffy/specs.nvim"] = {
 	event = "CursorMoved",
 	config = require("ui.specs"),
 }
-ui["ttbug/tig.nvim"] = {
-	opt = true,
-}
 
 return ui
