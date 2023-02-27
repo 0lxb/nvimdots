@@ -6,6 +6,14 @@ custom["preservim/tagbar"] = {
 }
 custom["iberianpig/tig-explorer.vim"] = {
 	lazy = true,
+	cmd = { "Tig",
+                "TigBlame",
+                "TigGrep",
+                "TigGrepResume",
+                "TigOpenCurrentFile",
+                "TigOpenFileWithCommit",
+                "TigOpenProjectRootDir",
+                "TigStatus" },
 	dependencies = {
 		{ "rbgrouleff/bclose.vim" },
 	},
