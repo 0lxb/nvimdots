@@ -4,12 +4,6 @@ tool["tpope/vim-fugitive"] = {
 	lazy = true,
 	cmd = { "Git", "G" },
 }
--- Please don't remove which-key.nvim otherwise you need to set timeoutlen=300 at `lua/core/options.lua`
-tool["folke/which-key.nvim"] = {
-	lazy = true,
-	event = "VeryLazy",
-	config = require("tool.which-key"),
-}
 -- only for fcitx5 user who uses non-English language during coding
 -- tool["pysan3/fcitx5.nvim"] = {
 -- 	lazy = true,
@@ -38,7 +32,7 @@ tool["michaelb/sniprun"] = {
 	-- You need to cd to `~/.local/share/nvim/site/lazy/sniprun/` and execute `bash ./install.sh`,
 	-- if you encountered error about no executable sniprun found.
 	build = "bash ./install.sh",
-	cmd = { "SnipRun" },
+	cmd = "SnipRun",
 	config = require("tool.sniprun"),
 }
 tool["akinsho/toggleterm.nvim"] = {
@@ -58,6 +52,11 @@ tool["folke/trouble.nvim"] = {
 	cmd = { "Trouble", "TroubleToggle", "TroubleRefresh" },
 	config = require("tool.trouble"),
 }
+tool["folke/which-key.nvim"] = {
+	lazy = true,
+	event = { "CursorHold", "CursorHoldI" },
+	config = require("tool.which-key"),
+}
 tool["gelguy/wilder.nvim"] = {
 	lazy = true,
 	event = "CmdlineEnter",
@@ -75,19 +74,16 @@ tool["nvim-telescope/telescope.nvim"] = {
 	dependencies = {
 		{ "nvim-tree/nvim-web-devicons" },
 		{ "nvim-lua/plenary.nvim" },
-		{ "nvim-lua/popup.nvim" },
 		{ "debugloop/telescope-undo.nvim" },
 		{
 			"ahmedkhalf/project.nvim",
-			event = "BufReadPost",
+			event = { "CursorHold", "CursorHoldI" },
 			config = require("tool.project"),
 		},
-		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
-		{ "nvim-telescope/telescope-frecency.nvim", dependencies = {
-			{ "kkharji/sqlite.lua" },
-		} },
 		{ "jvgrootveld/telescope-zoxide" },
+		{ "nvim-telescope/telescope-frecency.nvim" },
 		{ "nvim-telescope/telescope-live-grep-args.nvim" },
+		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 	},
 }
 
@@ -113,6 +109,7 @@ tool["mfussenegger/nvim-dap"] = {
 			"rcarriga/nvim-dap-ui",
 			config = require("tool.dap.dapui"),
 		},
+		{ "jay-babu/mason-nvim-dap.nvim" },
 	},
 }
 

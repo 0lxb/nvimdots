@@ -6,16 +6,13 @@ return function()
 		ui = require("modules.utils.icons").get("ui"),
 	}
 
-	require("nvim-tree").setup({
+	require("modules.utils").load_plugin("nvim-tree", {
 		auto_reload_on_write = true,
 		create_in_closed_folder = false,
 		disable_netrw = false,
 		hijack_cursor = true,
 		hijack_netrw = true,
 		hijack_unnamed_buffer_when_opening = true,
-		ignore_buffer_on_setup = false,
-		open_on_setup = false,
-		open_on_setup_file = false,
 		open_on_tab = false,
 		respect_buf_cwd = false,
 		sort_by = "name",
@@ -29,7 +26,6 @@ return function()
 			number = false,
 			relativenumber = false,
 			signcolumn = "yes",
-			hide_root_folder = false,
 			float = {
 				enable = false,
 				open_win_config = {
@@ -45,7 +41,7 @@ return function()
 		renderer = {
 			add_trailing = false,
 			group_empty = true,
-			highlight_git = false,
+			highlight_git = true,
 			full_name = false,
 			highlight_opened_files = "none",
 			special_files = { "Cargo.toml", "Makefile", "README.md", "readme.md", "CMakeLists.txt" },
@@ -62,33 +58,33 @@ return function()
 			root_folder_label = ":.:s?.*?/..?",
 			icons = {
 				webdev_colors = true,
-				git_placement = "before",
+				git_placement = "after",
 				show = {
 					file = true,
 					folder = true,
-					folder_arrow = false,
+					folder_arrow = true,
 					git = true,
 				},
 				padding = " ",
-				symlink_arrow = "  ",
+				symlink_arrow = " 󰁔 ",
 				glyphs = {
 					default = icons.documents.Default, --
 					symlink = icons.documents.Symlink, --
 					bookmark = icons.ui.Bookmark,
 					git = {
 						unstaged = icons.git.Mod_alt,
-						staged = icons.git.Add, --
+						staged = icons.git.Add, --󰄬
 						unmerged = icons.git.Unmerged,
-						renamed = icons.git.Rename, --
-						untracked = icons.git.Untracked, -- "ﲉ"
+						renamed = icons.git.Rename, --󰁔
+						untracked = icons.git.Untracked, -- "󰞋"
 						deleted = icons.git.Remove, --
 						ignored = icons.git.Ignore, --◌
 					},
 					folder = {
-						-- arrow_open = "",
-						-- arrow_closed = "",
-						arrow_open = "",
-						arrow_closed = "",
+						arrow_open = icons.ui.ArrowOpen,
+						arrow_closed = icons.ui.ArrowClosed,
+						-- arrow_open = "",
+						-- arrow_closed = "",
 						default = icons.ui.Folder,
 						open = icons.ui.FolderOpen,
 						empty = icons.ui.EmptyFolder,
@@ -108,7 +104,6 @@ return function()
 			update_root = true,
 			ignore_list = {},
 		},
-		ignore_ft_on_setup = {},
 		filters = {
 			dotfiles = false,
 			custom = { ".DS_Store" },
@@ -153,7 +148,7 @@ return function()
 		},
 		git = {
 			enable = true,
-			ignore = true,
+			ignore = false,
 			show_on_dirs = true,
 			timeout = 400,
 		},

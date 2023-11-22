@@ -14,6 +14,9 @@ local plug_map = {
 	["n|<leader>Tc"] = map_cu("TigOpenCurrentFile"):with_noremap():with_silent():with_desc("tig: open tig in current file"),
 	["n|<leader>Tw"] = map_cu("TigOpenFileWithCommit"):with_noremap():with_silent():with_desc("tig: open tig file with commit"),
 	["n|<leader>Tp"] = map_cu("TigOpenProjectRootDir"):with_noremap():with_silent():with_desc("tig: open tig on the project root"),
+
+	-- Plugin: tagbar
+	["n|<F3>"] = map_cr("TagbarToggle"):with_noremap():with_silent(),
 }
 
 bind.nvim_load_mapping(plug_map)

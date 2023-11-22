@@ -1,5 +1,5 @@
 return function()
-	require("paint").setup({
+	require("modules.utils").load_plugin("paint", {
 		---type PaintHighlight[]
 		highlights = {
 			{
@@ -12,7 +12,7 @@ return function()
 			},
 			{
 				filter = { filetype = "python" },
-				pattern = "%s*(%w+:)",
+				pattern = "%s*([_%w]+:)",
 				hl = "Constant",
 			},
 		},

@@ -11,9 +11,20 @@ _G._command_panel = function()
 	})
 end
 
+_G._flash_esc_or_noh = function()
+	local flash_active, state = pcall(function()
+		return require("flash.plugins.char").state
+	end)
+	if flash_active and state then
+		state:hide()
+	else
+		vim.cmd([[noh]])
+	end
+end
+
 local _lazygit = nil
 _G._toggle_lazygit = function()
-	if vim.fn.executable("lazygit") then
+	if vim.fn.executable("lazygit") == 1 then
 		if not _lazygit then
 			_lazygit = require("toggleterm.terminal").Terminal:new({
 				cmd = "lazygit",

@@ -1,25 +1,46 @@
 local completion = {}
+local use_copilot = require("core.settings").use_copilot
 
 completion["neovim/nvim-lspconfig"] = {
 	lazy = true,
-	event = { "BufReadPost", "BufAdd", "BufNewFile" },
+	event = { "CursorHold", "CursorHoldI" },
 	config = require("completion.lsp"),
 	dependencies = {
-		{ "ray-x/lsp_signature.nvim" },
 		{ "williamboman/mason.nvim" },
 		{ "williamboman/mason-lspconfig.nvim" },
 		{
-			"glepnir/lspsaga.nvim",
-			config = require("completion.lspsaga"),
+			"Jint-lzxy/lsp_signature.nvim",
+			config = require("completion.lsp-signature"),
 		},
-		{
-			"jose-elias-alvarez/null-ls.nvim",
-			dependencies = {
-				"nvim-lua/plenary.nvim",
-				"jay-babu/mason-null-ls.nvim",
-			},
-			config = require("completion.null-ls"),
-		},
+	},
+}
+completion["nvimdev/lspsaga.nvim"] = {
+	lazy = true,
+	event = "LspAttach",
+	config = require("completion.lspsaga"),
+	dependencies = { "nvim-tree/nvim-web-devicons" },
+}
+completion["stevearc/aerial.nvim"] = {
+	lazy = true,
+	event = "LspAttach",
+	config = require("completion.aerial"),
+}
+completion["dnlhc/glance.nvim"] = {
+	lazy = true,
+	event = "LspAttach",
+	config = require("completion.glance"),
+}
+completion["joechrisellis/lsp-format-modifications.nvim"] = {
+	lazy = true,
+	event = "LspAttach",
+}
+completion["jose-elias-alvarez/null-ls.nvim"] = {
+	lazy = true,
+	event = { "CursorHold", "CursorHoldI" },
+	config = require("completion.null-ls"),
+	dependencies = {
+		"nvim-lua/plenary.nvim",
+		"jay-babu/mason-null-ls.nvim",
 	},
 }
 completion["hrsh7th/nvim-cmp"] = {
@@ -32,7 +53,6 @@ completion["hrsh7th/nvim-cmp"] = {
 			dependencies = { "rafamadriz/friendly-snippets" },
 			config = require("completion.luasnip"),
 		},
-		{ "onsails/lspkind.nvim" },
 		{ "lukas-reineke/cmp-under-comparator" },
 		{ "saadparwaiz1/cmp_luasnip" },
 		{ "hrsh7th/cmp-nvim-lsp" },
@@ -42,7 +62,7 @@ completion["hrsh7th/nvim-cmp"] = {
 		{ "f3fora/cmp-spell" },
 		{ "hrsh7th/cmp-buffer" },
 		{ "kdheepak/cmp-latex-symbols" },
-		{ "ray-x/cmp-treesitter" },
+		{ "ray-x/cmp-treesitter", commit = "c8e3a74" },
 		-- { "tzachar/cmp-tabnine", build = "./install.sh", config = require("completion.tabnine") },
 		-- {
 		-- 	"jcdickinson/codeium.nvim",
@@ -54,5 +74,19 @@ completion["hrsh7th/nvim-cmp"] = {
 		-- },
 	},
 }
+if use_copilot then
+	completion["zbirenbaum/copilot.lua"] = {
+		lazy = true,
+		cmd = "Copilot",
+		event = "InsertEnter",
+		config = require("completion.copilot"),
+		dependencies = {
+			{
+				"zbirenbaum/copilot-cmp",
+				config = require("completion.copilot-cmp"),
+			},
+		},
+	}
+end
 
 return completion
