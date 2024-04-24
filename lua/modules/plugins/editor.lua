@@ -1,10 +1,5 @@
 local editor = {}
 
-editor["rainbowhxch/accelerated-jk.nvim"] = {
-	lazy = true,
-	event = "VeryLazy",
-	config = require("editor.accelerated-jk"),
-}
 editor["olimorris/persisted.nvim"] = {
 	lazy = true,
 	cmd = {
@@ -23,11 +18,6 @@ editor["m4xshen/autoclose.nvim"] = {
 	lazy = true,
 	event = "InsertEnter",
 	config = require("editor.autoclose"),
-}
-editor["max397574/better-escape.nvim"] = {
-	lazy = true,
-	event = { "CursorHold", "CursorHoldI" },
-	config = require("editor.better-escape"),
 }
 editor["LunarVim/bigfile.nvim"] = {
 	lazy = false,
@@ -60,9 +50,10 @@ editor["sindrets/diffview.nvim"] = {
 	cmd = { "DiffviewOpen", "DiffviewClose" },
 	config = require("editor.diffview"),
 }
-editor["junegunn/vim-easy-align"] = {
+editor["echasnovski/mini.align"] = {
 	lazy = true,
-	cmd = "EasyAlign",
+	event = { "CursorHold", "CursorHoldI" },
+	config = require("editor.align"),
 }
 editor["smoka7/hop.nvim"] = {
 	lazy = true,
@@ -70,10 +61,10 @@ editor["smoka7/hop.nvim"] = {
 	event = { "CursorHold", "CursorHoldI" },
 	config = require("editor.hop"),
 }
-editor["RRethy/vim-illuminate"] = {
+editor["tzachar/local-highlight.nvim"] = {
 	lazy = true,
 	event = { "CursorHold", "CursorHoldI" },
-	config = require("editor.vim-illuminate"),
+	config = require("editor.local-highlight"),
 }
 editor["romainl/vim-cool"] = {
 	lazy = true,
@@ -82,7 +73,20 @@ editor["romainl/vim-cool"] = {
 editor["lambdalisue/suda.vim"] = {
 	lazy = true,
 	cmd = { "SudaRead", "SudaWrite" },
-	config = require("editor.suda"),
+	init = require("editor.suda"),
+}
+editor["tpope/vim-sleuth"] = {
+	lazy = true,
+	event = { "BufNewFile", "BufReadPost", "BufFilePost" },
+}
+editor["nvim-pack/nvim-spectre"] = {
+	lazy = true,
+	cmd = "Spectre",
+}
+editor["mrjones2014/smart-splits.nvim"] = {
+	lazy = true,
+	event = { "CursorHoldI", "CursorHold" },
+	config = require("editor.splits"),
 }
 
 ----------------------------------------------------------------------
@@ -101,10 +105,6 @@ editor["nvim-treesitter/nvim-treesitter"] = {
 		{ "andymass/vim-matchup" },
 		{ "mfussenegger/nvim-treehopper" },
 		{ "nvim-treesitter/nvim-treesitter-textobjects" },
-		{
-			"abecodes/tabout.nvim",
-			config = require("editor.tabout"),
-		},
 		{
 			"windwp/nvim-ts-autotag",
 			config = require("editor.autotag"),

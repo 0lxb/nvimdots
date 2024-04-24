@@ -108,6 +108,9 @@ tool["mfussenegger/nvim-dap"] = {
 		{
 			"rcarriga/nvim-dap-ui",
 			config = require("tool.dap.dapui"),
+			dependencies = {
+				"nvim-neotest/nvim-nio",
+			},
 		},
 		{ "jay-babu/mason-nvim-dap.nvim" },
 	},
